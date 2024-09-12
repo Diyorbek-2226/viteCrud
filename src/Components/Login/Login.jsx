@@ -17,7 +17,8 @@ function Login() {
     if (email === validEmail && password === validPassword) {
       navigate('/home'); // Home sahifasiga yo'naltirish (history.push o'rniga navigate)
     } else {
-      setErrorMessage('Email yoki parol noto‘g‘ri.'); // Xato xabari
+      setErrorMessage('Email yoki parol noto‘g‘ri.'); 
+      navigate('/')// Xato xabari
     }
   };
 

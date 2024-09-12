@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Table } from 'antd'; // Import Table from Ant Design
+import { Table } from 'antd';
 import { Container, Box, TextField, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
+import {EditOutlined, DeleteOutlined } from "@ant-design/icons"
 
 export const Home = () => {
   const [data, setData] = useState([]);
   const [category, setCategory] = useState([]);
   const [editProduct, setEditProduct] = useState({ id: '', title: '', price: '' });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
 
   // Fetch product data
   useEffect(() => {
@@ -41,26 +44,53 @@ export const Home = () => {
   // Handling the PUT request to update a product
   const handleUpdateProduct = () => {
     fetch(`https://dummyjson.com/products/${editProduct.id}`, {
-      method: 'PUT', // or 'PATCH' for partial updates
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: editProduct.title,
-        price: editProduct.price, // You can add other fields you want to update here
+        price: editProduct.price,
       }),
     })
       .then((res) => res.json())
       .then((updatedProduct) => {
         console.log(updatedProduct);
-        // Update the product in the list dynamically
         setData((prevData) =>
           prevData.map((product) =>
             product.id === updatedProduct.id ? updatedProduct : product
           )
         );
-        setEditProduct({ id: '', title: '', price: '' }); // Reset the form after updating
+        setEditProduct({ id: '', title: '', price: '' });
       })
       .catch((error) => {
         console.error('Error updating product:', error);
+      });
+  };
+
+  // Handling the DELETE request to remove a product
+  const handleDeleteProduct = (id) => {
+    fetch(`https://dummyjson.com/products/${id}`, {
+      method: 'DELETE',
+    })
+      .then((res) => res.json())
+      .then(() => {
+        setData((prevData) => prevData.filter((product) => product.id !== id));
+        console.log(`Product ${id} deleted successfully`);
+      })
+      .catch((error) => {
+        console.error('Error deleting product:', error);
+      });
+  };
+
+  // Handling the search for products
+  const handleSearch = () => {
+    fetch(`https://dummyjson.com/products/search?q=${searchQuery}`)
+      .then((res) => res.json())
+      .then((result) => {
+        setSearchResults(result.products); // Store search results in state
+        console.log(result.products);
+      })
+      .catch((error) => {
+        console.error('Error fetching search results:', error);
       });
   };
 
@@ -68,31 +98,41 @@ export const Home = () => {
   const columns = [
     {
       title: 'Title',
-      dataIndex: 'title', // This matches the key in the product object
+      dataIndex: 'title',
       key: 'title',
     },
     {
       title: 'Brand',
-      dataIndex: 'brand', // This matches the key in the product object
+      dataIndex: 'brand',
       key: 'brand',
     },
     {
       title: 'Price',
-      dataIndex: 'price', // This matches the key in the product object
+      dataIndex: 'price',
       key: 'price',
-      render: (price) => `$${price}`, // Render price with a dollar sign
+      render: (price) => `$${price}`,
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (text, record) => (
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setEditProduct({ id: record.id, title: record.title, price: record.price })}
-        >
-          Edit
-        </Button>
+        <>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setEditProduct({ id: record.id, title: record.title, price: record.price })}
+            style={{ marginRight: '8px' }}
+          >
+            <EditOutlined />
+          </Button>
+          <Button style={{backgroundColor:"red"}}
+            variant="contained"
+            color="secondary "
+            onClick={() => handleDeleteProduct(record.id)}
+          >
+            <DeleteOutlined className='text-white' />
+          </Button>
+        </>
       ),
     },
   ];
@@ -100,6 +140,46 @@ export const Home = () => {
   return (
     <Container maxWidth="lg">
       <h2 className="text-2xl text-red-600 font-mono">Product List</h2>
+
+      {/* Search Bar */}
+      <Box mb={4}>
+        <TextField
+          label="Search Products"
+          variant="outlined"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          fullWidth
+          margin="normal"
+        />
+      <Box className=''>
+      <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSearch}
+          style={{ marginTop: '16px' }}
+        >
+          Search
+        </Button> <div className='text-center w-full'>
+        <Link className=' block w-[200px] pt-2 pb-2 rounded-md  bg-blue-600 text-white mt-8 mb-4 ms-8' to={'../'}>
+        Log out
+        </Link>
+        </div>
+      </Box>
+      </Box>
+
+      {/* Render Searched Products */}
+      {searchResults.length > 0 && (
+        <>
+          <h3 className="text-xl text-blue-500 font-mono">Search Results</h3>
+          <Table
+            className="font-mono"
+            columns={columns}
+            dataSource={searchResults}
+            rowKey="id"
+            pagination={{ pageSize: 5 }}
+          />
+        </>
+      )}
 
       {/* Render Product Table */}
       <Table
