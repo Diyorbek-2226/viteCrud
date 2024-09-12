@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom'; // Router emas, faqat Routes va Route
+import { Routes, Route } from 'react-router-dom'; 
 import Login from './Components/Login/Login';
 import { Home } from './Components/Home/Home';
 
@@ -9,8 +9,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Login />} />
       <Route path="/home" element={<Home />} />
-      
-      
+    
     </Routes>
   );
 }
